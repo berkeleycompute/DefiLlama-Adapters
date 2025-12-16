@@ -1,5 +1,20 @@
 const { get } = require('../helper/http');
 
+/**
+ * @fileoverview adapter to calculate the tvl of the Silicon.net protocol.
+ * 
+ * This adapter calculates the tvl of the Silicon.net protocol by:
+ * 1. Fetching all GPU NFTs from the Silicon.net API
+ * 2. Calculating the value of the GPUs in USD
+ * 3. Converting the USD value of the GPUs into pool tokens.
+ * 4. Summing that value with the number of existing pool tokens
+ * 
+ * @testing you can test this adapter by running
+ * npm install
+ * export LLAMA_DEBUG_MODE="true" 
+ * node test.js projects/silicon.net/index.js
+ */
+
 // TODO: when we submit our adapter pr, we will fill in the following details.
 // ##### Name (to be shown on DefiLlama):
 // Silicon.net
@@ -21,21 +36,6 @@ const { get } = require('../helper/http');
 
 // ##### methodology (what is being counted as tvl, how is tvl being calculated):
 // copy the tvl string below and expand on it, even, if we want
-
-/**
- * @fileoverview adapter to calculate the tvl of the Silicon.net protocol.
- * 
- * This adapter calculates the tvl of the Silicon.net protocol by:
- * 1. Fetching all GPU NFTs from the Silicon.net API
- * 2. Calculating the value of the GPUs in USD
- * 3. Converting the USD value of the GPUs into pool tokens.
- * 4. Summing that value with the number of existing pool tokens
- * 
- * @testing you can test this adapter by running
- * npm install
- * export LLAMA_DEBUG_MODE="true" 
- * node test.js projects/silicon.net/index.js
- */
 
 // Silicon.net Protocol Contract - will be specified later
 const POOL_TOKEN = "0x0000000000000000000000000000000000000000"; // TODO: Update with actual contract address
@@ -84,7 +84,6 @@ async function fetchAllGPUNFTs() {
 
   while (true) {
     try {
-      // The API likely expects these as URL query parameters
       const url = `https://jhdzwsjlmavfzceoshxo.supabase.co/functions/v1/api/public/gpu-earnings/gpus-list?page=${page}&pageSize=${pageSize}&sort=month-1-earnings&order=desc&excludeZeroEarnings=false&onlyWithApr=false`;
       
       const response = await get(url);
@@ -114,7 +113,6 @@ async function fetchAllGPUNFTs() {
 
   return allGPUs;
 }
-
 
 /**
  * Calculates total GPU valuation, denominated in USD

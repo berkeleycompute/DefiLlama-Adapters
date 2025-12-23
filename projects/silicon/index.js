@@ -38,7 +38,7 @@ const { get } = require('../helper/http');
 // copy the tvl string below and expand on it, even, if we want
 
 // Silicon.net Protocol Contract - will be specified later
-const POOL_TOKEN = "0x0000000000000000000000000000000000000000"; // TODO: Update with actual contract address
+const POOL_TOKEN = "0xb59781c5bf9330b9bb7ce64df7cc118fec28b744"; // TODO: Update with actual contract address
 const ORACLE = "0x0000000000000000000000000000000000000000"; // TODO: Update with actual contract address
 
 // GPU valuation prices in USD
@@ -158,21 +158,27 @@ function calculateGPUValue(gpus) {
 }
 
 /**
- * Main TVL function for Silicon.net
+ * Main TVL function for Silicon.net's gpu nfts
  * @param {Object} api - DefiLlama API instance
  */
-async function tvl(api) {
-  // 1. Fetch and value GPU NFTs
+async function nfts(api) {
+  // Fetch and value GPU NFTs
   const gpus = await fetchAllGPUNFTs();
   const gpuValue = calculateGPUValue(gpus);
 
   // TODO: convert the usdc value of the gpus into pool tokens. Andrew says ask the oracle or pool contract (idk which, check abi) for the price of the pool tokens via getPoolTokensForDeposit. 
   // We may need an ABI.json to do so.
-  
+
   // Add GPU valuation as USD value
   api.addUSDValue(gpuValue);
+}
 
-  // 2. Get total supply of Silicon pool tokens
+/**
+ * Main TVL function for Silicon.net's pool tokens
+ * @param {Object} api - DefiLlama API instance
+ */
+async function tokens(api) {
+  // Get total supply of Silicon pool tokens
   // This counts all pool tokens that exist in circulation
   const poolTokenSupply = await api.call({
     target: POOL_TOKEN,
@@ -188,9 +194,14 @@ async function tvl(api) {
 module.exports = {
   methodology: 
     `TVL is calculated by summing: 
-        (1) The value of GPU NFTs in the protocol, priced at $3,000 per 4090, $4,000 per 5090, and $30,000 per H100, based on real-time GPU data from the Silicon.net API; and (2) The value of all fungible pool tokens produced by the protocol contract. GPU valuations reflect the estimated market value of compute hardware backing the protocol.`,
-  arbitrum: {
-    tvl,
-  }
+        (1) The value of GPU NFTs in the protocol, based on real-time GPU data from the Silicon.net API. GPU valuations: RTX 4090 ($3,500), RTX 5090 ($5,000), H100 ($21,000), H200 ($31,000), A6000 ($6,000), A5000 ($2,000), and RTX 4000 Ada ($1,500). 
+        (2) The value of all fungible pool tokens in circulation. 
+        GPU valuations reflect the estimated market value of compute hardware backing the protocol.`,
+    arbitrum: {
+    tvl: tokens,
+  },
+  base: {
+    tvl: nfts,
+  },
 };
 
